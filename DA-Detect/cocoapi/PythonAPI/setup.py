@@ -7,11 +7,12 @@ import numpy as np
 ext_modules = [
     Extension(
         'pycocotools._mask',
-        sources=['/kaggle/input/mcaproject/cocoapi/common/maskApi.c', '/kaggle/input/mcaproject/cocoapi/PythonAPI/pycocotools/_mask.pyx'],
-        include_dirs = [np.get_include(), '/kaggle/input/mcaproject/cocoapi/common'],
+        sources=['../common/maskApi.c', 'pycocotools/_mask.pyx'],
+        include_dirs = [np.get_include(), '../common'],
         extra_compile_args=['-Wno-cpp', '-Wno-unused-function', '-std=c99'],
     )
 ]
+
 setup(
     name='pycocotools',
     packages=['pycocotools'],
