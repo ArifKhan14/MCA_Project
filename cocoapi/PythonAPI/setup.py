@@ -12,7 +12,6 @@ ext_modules = [
         extra_compile_args=['-Wno-cpp', '-Wno-unused-function', '-std=c99'],
     )
 ]
-
 setup(
     name='pycocotools',
     packages=['pycocotools'],
