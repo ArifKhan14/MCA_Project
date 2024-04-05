@@ -317,7 +317,7 @@ at::Tensor ROIAlign_backward_cuda(const at::Tensor& grad,
 
   cudaStream_t stream = at::cuda::getCurrentCUDAStream();
 
-  dim3 grid(min((grad.numel() + 512L - 1) / 512L,, 4096L));
+  dim3 grid(min((grad.numel() + 512L - 1) / 512L, 4096L));
   dim3 block(512);
 
   // handle possibly empty gradients
