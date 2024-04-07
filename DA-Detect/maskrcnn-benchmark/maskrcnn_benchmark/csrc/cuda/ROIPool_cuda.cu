@@ -125,8 +125,9 @@ std::tuple<at::Tensor, at::Tensor> ROIPool_forward_cuda(const at::Tensor& input,
   auto argmax = at::zeros({num_rois, channels, pooled_height, pooled_width}, input.options().dtype(at::kInt));
 
   cudaStream_t stream = at::cuda::getCurrentCUDAStream();
-
-  dim3 grid(min(THCCeilDiv((long)output_size, 512L), 4096L));
+  
+  dim3 grid(min((output_size + 512L - 1) / 512L, 4096L));
+  // dim3 grid(min(THCCeilDiv((long)output_size, 512L), 4096L));
   dim3 block(512);
 
   if (output.numel() == 0) {
@@ -172,8 +173,8 @@ at::Tensor ROIPool_backward_cuda(const at::Tensor& grad,
   auto grad_input = at::zeros({batch_size, channels, height, width}, grad.options());
 
   cudaStream_t stream = at::cuda::getCurrentCUDAStream();
-
-  dim3 grid(min(THCCeilDiv((long)grad.numel(), 512L), 4096L));
+  dim3 grid(min((grad.numel() + 512L - 1) / 512L, 4096L)); 
+  // dim3 grid(min(THCCeilDiv((long)grad.numel(), 512L), 4096L));
   dim3 block(512);
 
   // handle possibly empty gradients
