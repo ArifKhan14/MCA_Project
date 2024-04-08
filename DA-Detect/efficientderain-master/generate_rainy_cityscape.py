@@ -190,12 +190,12 @@ if __name__ == "__main__":
 
     ### Path to raining maks root
     # rain_mask_path = '/home/jinlong/Desktop/final_heavyV1'
-    rain_mask_path = '/home/jinlong/Desktop/rainy_mask/final_heavy'
+    rain_mask_path = '/kaggle/input/rainy-mask/Streaks_Garg06'
     # rain_mask_path = "/home/jinlong/Desktop/rainy_mask/erode_final_1"
     ### Path to Cityscapes dataset root
-    cityscapes_path = '/home/jinlong/jinlong_NAS/Driving/dataset/DA_cityscapes/leftImg8bit_trainvaltest'
+    cityscapes_path = '/kaggle/input/leftimg8bit-trainvaltest'
     ### Path to where all difference images are saved
-    difference_path_img = '/home/jinlong/Desktop'
+    difference_path_img = '/kaggle/working/'
 
     # data_type = 'val' # 'train' or 'val' or 'test'
     data_type_list = ['train','test','val']
