@@ -24,7 +24,6 @@ class RPNPostProcessor(torch.nn.Module):
         min_size,
         box_coder=None,
         fpn_post_nms_top_n=None,
-        fpn_post_nms_per_batch=True,
     ):
         """
         Arguments:
@@ -48,7 +47,6 @@ class RPNPostProcessor(torch.nn.Module):
         if fpn_post_nms_top_n is None:
             fpn_post_nms_top_n = post_nms_top_n
         self.fpn_post_nms_top_n = fpn_post_nms_top_n
-        self.fpn_post_nms_per_batch = fpn_post_nms_per_batch
 
     def add_gt_proposals(self, proposals, targets):
         """
@@ -59,19 +57,21 @@ class RPNPostProcessor(torch.nn.Module):
         # Get the device we're operating on
         device = proposals[0].bbox.device
 
-        gt_boxes = [target.copy_with_fields([]) for target in targets]
+        gt_boxes = [target.copy_with_fields(['is_source']) for target in targets]
 
         # later cat of bbox requires all fields to be present for all bbox
         # so we need to add a dummy for objectness that's missing
         for gt_box in gt_boxes:
             gt_box.add_field("objectness", torch.ones(len(gt_box), device=device))
 
-        proposals = [
-            cat_boxlist((proposal, gt_box))
-            for proposal, gt_box in zip(proposals, gt_boxes)
-        ]
+        new_proposals = []
+        for proposal, gt_box in zip(proposals, gt_boxes):
+            if gt_box.get_field('is_source').any():
+                new_proposals.append(cat_boxlist((proposal, gt_box.copy_with_fields(['objectness']))))
+            else:
+                new_proposals.append(proposal)
 
-        return proposals
+        return new_proposals
 
     def forward_for_single_feature_map(self, anchors, objectness, box_regression):
         """
@@ -156,9 +156,9 @@ class RPNPostProcessor(torch.nn.Module):
         # different behavior during training and during testing:
         # during training, post_nms_top_n is over *all* the proposals combined, while
         # during testing, it is over the proposals for each image
-        # NOTE: it should be per image, and not per batch. However, to be consistent 
-        # with Detectron, the default is per batch (see Issue #672)
-        if self.training and self.fpn_post_nms_per_batch:
+        # TODO resolve this difference and make it consistent. It should be per image,
+        # and not per batch
+        if self.training:
             objectness = torch.cat(
                 [boxlist.get_field("objectness") for boxlist in boxlists], dim=0
             )
@@ -191,7 +191,6 @@ def make_rpn_postprocessor(config, rpn_box_coder, is_train):
     if not is_train:
         pre_nms_top_n = config.MODEL.RPN.PRE_NMS_TOP_N_TEST
         post_nms_top_n = config.MODEL.RPN.POST_NMS_TOP_N_TEST
-    fpn_post_nms_per_batch = config.MODEL.RPN.FPN_POST_NMS_PER_BATCH
     nms_thresh = config.MODEL.RPN.NMS_THRESH
     min_size = config.MODEL.RPN.MIN_SIZE
     box_selector = RPNPostProcessor(
@@ -201,6 +200,5 @@ def make_rpn_postprocessor(config, rpn_box_coder, is_train):
         min_size=min_size,
         box_coder=rpn_box_coder,
         fpn_post_nms_top_n=fpn_post_nms_top_n,
-        fpn_post_nms_per_batch=fpn_post_nms_per_batch,
     )
     return box_selector

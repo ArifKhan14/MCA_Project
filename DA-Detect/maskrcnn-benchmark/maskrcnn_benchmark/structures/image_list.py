@@ -1,6 +1,14 @@
+'''
+Descripttion: 
+version: 
+Author: Jinlong Li CSU PhD
+Date: 2022-01-04 23:51:49
+LastEditors: Jinlong Li CSU PhD
+LastEditTime: 2022-01-19 22:52:12
+'''
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 from __future__ import division
-
+import pdb
 import torch
 
 
@@ -24,7 +32,19 @@ class ImageList(object):
     def to(self, *args, **kwargs):
         cast_tensor = self.tensors.to(*args, **kwargs)
         return ImageList(cast_tensor, self.image_sizes)
-
+    
+    def __add__(self, other):
+        tensors = [self.tensors, other.tensors]
+        max_size = tuple(max(s) for s in zip(*[img.shape for img in tensors]))
+        max_size = list(max_size)
+        max_size[0] = self.tensors.shape[0] + other.tensors.shape[0]
+        batch_shape = tuple(max_size)
+        batched_imgs = tensors[0].new(*batch_shape).zero_()
+        for i, img in enumerate(self.tensors):
+            batched_imgs[i, :img.shape[0], :img.shape[1], :img.shape[2]].copy_(img)
+        for i, img in enumerate(other.tensors):
+            batched_imgs[i+self.tensors.shape[0], :img.shape[0], :img.shape[1], :img.shape[2]].copy_(img)
+        return ImageList(batched_imgs, self.image_sizes+other.image_sizes)
 
 def to_image_list(tensors, size_divisible=0):
     """
@@ -41,12 +61,11 @@ def to_image_list(tensors, size_divisible=0):
         return tensors
     elif isinstance(tensors, torch.Tensor):
         # single tensor shape can be inferred
-        if tensors.dim() == 3:
-            tensors = tensors[None]
         assert tensors.dim() == 4
         image_sizes = [tensor.shape[-2:] for tensor in tensors]
         return ImageList(tensors, image_sizes)
     elif isinstance(tensors, (tuple, list)):
+        # pdb.set_trace()
         max_size = tuple(max(s) for s in zip(*[img.shape for img in tensors]))
 
         # TODO Ideally, just remove this and let me model handle arbitrary

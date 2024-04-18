@@ -2,7 +2,7 @@
 import numpy as np
 import torch
 from torch import nn
-from maskrcnn_benchmark.layers.misc import interpolate
+import torch.nn.functional as F
 
 from maskrcnn_benchmark.structures.bounding_box import BoxList
 
@@ -29,7 +29,7 @@ class MaskPostProcessor(nn.Module):
         Arguments:
             x (Tensor): the mask logits
             boxes (list[BoxList]): bounding boxes that are used as
-                reference, one for each image
+                reference, one for ech image
 
         Returns:
             results (list[BoxList]): one BoxList for each image, containing
@@ -117,10 +117,6 @@ def expand_masks(mask, padding):
 
 
 def paste_mask_in_image(mask, box, im_h, im_w, thresh=0.5, padding=1):
-    # Need to work on the CPU, where fp16 isn't supported - cast to float to avoid this
-    mask = mask.float()
-    box = box.float()
-
     padded_mask, scale = expand_masks(mask[None], padding=padding)
     mask = padded_mask[0, 0]
     box = expand_boxes(box[None], scale)[0]
@@ -137,7 +133,7 @@ def paste_mask_in_image(mask, box, im_h, im_w, thresh=0.5, padding=1):
 
     # Resize mask
     mask = mask.to(torch.float32)
-    mask = interpolate(mask, size=(h, w), mode='bilinear', align_corners=False)
+    mask = F.interpolate(mask, size=(h, w), mode='bilinear', align_corners=False)
     mask = mask[0][0]
 
     if thresh >= 0:

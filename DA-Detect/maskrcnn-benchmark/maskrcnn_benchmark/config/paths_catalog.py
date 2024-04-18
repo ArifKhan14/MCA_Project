@@ -2,151 +2,227 @@
 """Centralized catalog of paths."""
 
 import os
-from copy import deepcopy
+
 
 class DatasetCatalog(object):
     DATA_DIR = "datasets"
     DATASETS = {
-        "coco_2017_train": {
-            "img_dir": "coco/train2017",
-            "ann_file": "coco/annotations/instances_train2017.json"
-        },
-        "coco_2017_val": {
-            "img_dir": "coco/val2017",
-            "ann_file": "coco/annotations/instances_val2017.json"
-        },
-        "coco_2014_train": {
-            "img_dir": "coco/train2014",
-            "ann_file": "coco/annotations/instances_train2014.json"
-        },
-        "coco_2014_val": {
-            "img_dir": "coco/val2014",
-            "ann_file": "coco/annotations/instances_val2014.json"
-        },
-        "coco_2014_minival": {
-            "img_dir": "coco/val2014",
-            "ann_file": "coco/annotations/instances_minival2014.json"
-        },
-        "coco_2014_valminusminival": {
-            "img_dir": "coco/val2014",
-            "ann_file": "coco/annotations/instances_valminusminival2014.json"
-        },
-        "keypoints_coco_2014_train": {
-            "img_dir": "coco/train2014",
-            "ann_file": "coco/annotations/person_keypoints_train2014.json",
-        },
-        "keypoints_coco_2014_val": {
-            "img_dir": "coco/val2014",
-            "ann_file": "coco/annotations/person_keypoints_val2014.json"
-        },
-        "keypoints_coco_2014_minival": {
-            "img_dir": "coco/val2014",
-            "ann_file": "coco/annotations/person_keypoints_minival2014.json",
-        },
-        "keypoints_coco_2014_valminusminival": {
-            "img_dir": "coco/val2014",
-            "ann_file": "coco/annotations/person_keypoints_valminusminival2014.json",
-        },
-        "voc_2007_train": {
-            "data_dir": "voc/VOC2007",
-            "split": "train"
-        },
-        "voc_2007_train_cocostyle": {
-            "img_dir": "voc/VOC2007/JPEGImages",
-            "ann_file": "voc/VOC2007/Annotations/pascal_train2007.json"
-        },
-        "voc_2007_val": {
-            "data_dir": "voc/VOC2007",
-            "split": "val"
-        },
-        "voc_2007_val_cocostyle": {
-            "img_dir": "voc/VOC2007/JPEGImages",
-            "ann_file": "voc/VOC2007/Annotations/pascal_val2007.json"
-        },
-        "voc_2007_test": {
-            "data_dir": "voc/VOC2007",
-            "split": "test"
-        },
-        "voc_2007_test_cocostyle": {
-            "img_dir": "voc/VOC2007/JPEGImages",
-            "ann_file": "voc/VOC2007/Annotations/pascal_test2007.json"
-        },
-        "voc_2012_train": {
-            "data_dir": "voc/VOC2012",
-            "split": "train"
-        },
-        "voc_2012_train_cocostyle": {
-            "img_dir": "voc/VOC2012/JPEGImages",
-            "ann_file": "voc/VOC2012/Annotations/pascal_train2012.json"
-        },
-        "voc_2012_val": {
-            "data_dir": "voc/VOC2012",
-            "split": "val"
-        },
-        "voc_2012_val_cocostyle": {
-            "img_dir": "voc/VOC2012/JPEGImages",
-            "ann_file": "voc/VOC2012/Annotations/pascal_val2012.json"
-        },
-        "voc_2012_test": {
-            "data_dir": "voc/VOC2012",
-            "split": "test"
-            # PASCAL VOC2012 doesn't made the test annotations available, so there's no json annotation
-        },
+        # "coco_2017_train": {
+        #     "img_dir": "coco/train2017",
+        #     "ann_file": "coco/annotations/instances_train2017.json"
+        # },
+        # "coco_2017_val": {
+        #     "img_dir": "coco/val2017",
+        #     "ann_file": "coco/annotations/instances_val2017.json"
+        # },
+        # "coco_2014_train": {
+        #     "img_dir": "coco/train2014",
+        #     "ann_file": "coco/annotations/instances_train2014.json"
+        # },
+        # "coco_2014_val": {
+        #     "img_dir": "coco/val2014",
+        #     "ann_file": "coco/annotations/instances_val2014.json"
+        # },
+        # "coco_2014_minival": {
+        #     "img_dir": "coco/val2014",
+        #     "ann_file": "coco/annotations/instances_minival2014.json"
+        # },
+        # "coco_2014_valminusminival": {
+        #     "img_dir": "coco/val2014",
+        #     "ann_file": "coco/annotations/instances_valminusminival2014.json"
+        # },
+        # "keypoints_coco_2014_train": {
+        #     "img_dir": "coco/train2014",
+        #     "ann_file": "coco/annotations/person_keypoints_train2014.json",
+        # },
+        # "keypoints_coco_2014_val": {
+        #     "img_dir": "coco/val2014",
+        #     "ann_file": "coco/annotations/person_keypoints_val2014.json"
+        # },
+        # "keypoints_coco_2014_minival": {
+        #     "img_dir": "coco/val2014",
+        #     "ann_file": "coco/annotations/person_keypoints_minival2014.json",
+        # },
+        # "keypoints_coco_2014_valminusminival": {
+        #     "img_dir": "coco/val2014",
+        #     "ann_file": "coco/annotations/person_keypoints_valminusminival2014.json",
+        # },
+        # "voc_2007_train": {
+        #     "data_dir": "voc/VOC2007",
+        #     "split": "train"
+        # },
+        # "voc_2007_train_cocostyle": {
+        #     "img_dir": "voc/VOC2007/JPEGImages",
+        #     "ann_file": "voc/VOC2007/Annotations/pascal_train2007.json"
+        # },
+        # "voc_2007_val": {
+        #     "data_dir": "voc/VOC2007",
+        #     "split": "val"
+        # },
+        # "voc_2007_val_cocostyle": {
+        #     "img_dir": "voc/VOC2007/JPEGImages",
+        #     "ann_file": "voc/VOC2007/Annotations/pascal_val2007.json"
+        # },
+        # "voc_2007_test": {
+        #     "data_dir": "voc/VOC2007",
+        #     "split": "test"
+        # },
+        # "voc_2007_test_cocostyle": {
+        #     "img_dir": "voc/VOC2007/JPEGImages",
+        #     "ann_file": "voc/VOC2007/Annotations/pascal_test2007.json"
+        # },
+        # "voc_2012_train": {
+        #     "data_dir": "voc/VOC2012",
+        #     "split": "train"
+        # },
+        # "voc_2012_train_cocostyle": {
+        #     "img_dir": "voc/VOC2012/JPEGImages",
+        #     "ann_file": "voc/VOC2012/Annotations/pascal_train2012.json"
+        # },
+        # "voc_2012_val": {
+        #     "data_dir": "voc/VOC2012",
+        #     "split": "val"
+        # },
+        # "voc_2012_val_cocostyle": {
+        #     "img_dir": "voc/VOC2012/JPEGImages",
+        #     "ann_file": "voc/VOC2012/Annotations/pascal_val2012.json"
+        # },
+        # "voc_2012_test": {
+        #     "data_dir": "voc/VOC2012",
+        #     "split": "test"
+        #     # PASCAL VOC2012 doesn't made the test annotations available, so there's no json annotation
+        # },
 
-        ##############################################
-        # These ones are deprecated, should be removed
+
+
+
+        # "cityscapes_fine_instanceonly_seg_train_cocostyle": {
+        #     "img_dir": "cityscapes/images",
+        #     "ann_file": "cityscapes/annotations/instancesonly_filtered_gtFine_train.json"
+        # },
+        # "cityscapes_fine_instanceonly_seg_val_cocostyle": {
+        #     "img_dir": "cityscapes/images",
+        #     "ann_file": "cityscapes/annotations/instancesonly_filtered_gtFine_val.json"
+        # },
+        # "cityscapes_fine_instanceonly_seg_test_cocostyle": {
+        #     "img_dir": "cityscapes/images",
+        #     "ann_file": "cityscapes/annotations/instancesonly_filtered_gtFine_test.json"
+        # },
+        # "foggy_cityscapes_fine_instanceonly_seg_train_cocostyle": {
+        #     "img_dir": "foggy_cityscapes/images",
+        #     "ann_file": "foggy_cityscapes/annotations/foggy_instancesonly_filtered_gtFine_train.json"
+        # },
+
+        # "foggy_cityscapes_fine_instanceonly_seg_val_cocostyle": {
+        #     "img_dir": "foggy_cityscapes/images",
+        #     "ann_file": "foggy_cityscapes/annotations/foggy_instancesonly_filtered_gtFine_val.json"
+        # },
+
         "cityscapes_fine_instanceonly_seg_train_cocostyle": {
-            "img_dir": "cityscapes/images",
-            "ann_file": "cityscapes/annotations/instancesonly_filtered_gtFine_train.json"
+            "img_dir": "/kaggle/input/leftimg8bit-trainvaltest/leftImg8bit/train",
+            "ann_file": "/kaggle/input/coco-annotation/cocoAnnotations/cityscapes_train_cocostyle.json"
         },
         "cityscapes_fine_instanceonly_seg_val_cocostyle": {
-            "img_dir": "cityscapes/images",
-            "ann_file": "cityscapes/annotations/instancesonly_filtered_gtFine_val.json"
+            "img_dir": "/kaggle/input/leftimg8bit-trainvaltest/leftImg8bit/val",
+            "ann_file": "/kaggle/input/coco-annotation/cocoAnnotations/cityscapes_val_cocostyle.json"
         },
         "cityscapes_fine_instanceonly_seg_test_cocostyle": {
-            "img_dir": "cityscapes/images",
-            "ann_file": "cityscapes/annotations/instancesonly_filtered_gtFine_test.json"
+            "img_dir": "/kaggle/input/leftimg8bit-trainvaltest/leftImg8bit/test",
+            # "ann_file": "/home/jinlong/jinlong_NAS/Driving/dataset/DA_cityscapes/leftImg8bit_trainvaltest/annotations/instancesonly_filtered_gtFine_test.json"
+            "ann_file": ""
         },
-        ##############################################
+        "foggy_cityscapes_fine_instanceonly_seg_train_cocostyle": {
+            "img_dir": "/kaggle/input/leftimg8bit-trainvaltest-foggy/leftImg8bit_foggy/train",
+            "ann_file": "/kaggle/input/coco-annotation/cocoAnnotations/cityscapes_foggy_train_cocostyle.json"
+        },
 
-        "cityscapes_poly_instance_train": {
-            "img_dir": "cityscapes/leftImg8bit/",
-            "ann_dir": "cityscapes/gtFine/",
-            "split": "train",
-            "mode": "poly",
+        "foggy_cityscapes_fine_instanceonly_seg_val_cocostyle": {
+            "img_dir": "/kaggle/input/leftimg8bit-trainvaltest-foggy/leftImg8bit_foggy/val",
+            "ann_file": "/kaggle/input/coco-annotation/cocoAnnotations/cityscapes_foggy_val_cocostyle.json"
         },
-        "cityscapes_poly_instance_val": {
-            "img_dir": "cityscapes/leftImg8bit",
-            "ann_dir": "cityscapes/gtFine",
-            "split": "val",
-            "mode": "poly",
+
+
+        "rainy_cityscapes_fine_instanceonly_seg_train_cocostyle": {
+            "img_dir": "/kaggle/input/cityscapes-rainmixdataset/Cityscapes_overcast/leftImg8bit/train",
+            #  "img_dir": "/home/jinlong/jinlong_NAS/Driving/dataset/DA_cityscapes/leftImg8bit_trainvaltest_rain/leftImg8bit_rain/train",
+            "ann_file": ""
+            # "ann_file": '/home/jinlong/jinlong_NAS/Driving/dataset/DA_cityscapes/caronly/caronly_filtered_gtFine_train.json',
         },
-        "cityscapes_poly_instance_minival": {
-            "img_dir": "cityscapes/leftImg8bit",
-            "ann_dir": "cityscapes/gtFine",
-            "split": "val",
-            "mode": "poly",
-            "mini": 10,
+
+        "rainy_cityscapes_fine_instanceonly_seg_val_cocostyle": {
+            "img_dir": "/kaggle/input/cityscapes-rainmixdataset/Cityscapes_overcast/leftImg8bit/val",
+            #  "img_dir": "/home/jinlong/jinlong_NAS/Driving/dataset/DA_cityscapes/leftImg8bit_trainvaltest_rain/leftImg8bit_rain/val",
+            # "img_dir": "/home/jinlong/Desktop/Cityscapes_overcast/leftImg8bit/val",
+            "ann_file": ""
         },
-        "cityscapes_mask_instance_train": {
-            "img_dir": "cityscapes/leftImg8bit/",
-            "ann_dir": "cityscapes/gtFine/",
-            "split": "train",
-            "mode": "mask",
-        },
-        "cityscapes_mask_instance_val": {
-            "img_dir": "cityscapes/leftImg8bit",
-            "ann_dir": "cityscapes/gtFine",
-            "split": "val",
-            "mode": "mask",
-        },
-        "cityscapes_mask_instance_minival": {
-            "img_dir": "cityscapes/leftImg8bit",
-            "ann_dir": "cityscapes/gtFine",
-            "split": "val",
-            "mode": "mask",
-            "mini": 10,
-        },
+
+        # "bdd100k_daytime_clear_city_street_train_cocostyle": {
+        #     "img_dir": "/home/jinlong/jinlong_NAS/Driving/dataset/BDD100K/daytime_clear_city_street_coco/train",
+        #     "ann_file": "/home/jinlong/jinlong_NAS/Driving/dataset/BDD100K/daytime_clear_city_street_coco/train_bdd100k_coco.json"
+        # },
+        # "rainy_bdd100k_daytime_clear_city_street_train_cocostyle": {
+        #     "img_dir": "/home/jinlong/jinlong_NAS/Driving/dataset/BDD100K/BDD100K_overcast",
+        #     "ann_file": "/home/jinlong/jinlong_NAS/Driving/dataset/BDD100K/daytime_clear_city_street_coco/train_bdd100k_coco.json"
+        # },
+        # "bdd100k_daytime_clear_city_street_val_cocostyle": {
+        #     "img_dir": "/home/jinlong/jinlong_NAS/Driving/dataset/BDD100K/daytime_clear_city_street_coco/val",
+        #     "ann_file": "/home/jinlong/jinlong_NAS/Driving/dataset/BDD100K/daytime_clear_city_street_coco/val_bdd100k_coco.json"
+        # },
+
+
+        # 'sim10k_cocostyle': {
+        #         "img_dir": 'sim10k/JPEGImages',
+        #         "ann_file": 'sim10k/car_instances.json'
+        # },
+
+        #### cityscape to KITTI dataset
+        # 'kitti_cocostyle': {
+        #         "img_dir": '/home/jinlong/jinlong_NAS/Driving/dataset/KITTI/dataset/training/image_2',
+        #         "ann_file": '/home/jinlong/jinlong_NAS/Driving/dataset/KITTI/dataset/caronly_training.json'
+        # },
+        # 'cityscapes_car_train_cocostyle': {
+        #         "img_dir": '/home/jinlong/jinlong_NAS/Driving/dataset/DA_cityscapes/leftImg8bit_trainvaltest/leftImg8bit/train',
+        #         "ann_file": '/home/jinlong/jinlong_NAS/Driving/dataset/DA_cityscapes/caronly/caronly_filtered_gtFine_train.json',
+        # },
+        # "cityscapes_rain_car_trian_cocostyle": {
+        #     "img_dir": "/home/jinlong/jinlong_NAS/Driving/dataset/DA_cityscapes/leftImg8bit_trainvaltest_rain/leftImg8bit_rain/train",
+        #     "ann_file": '/home/jinlong/jinlong_NAS/Driving/dataset/DA_cityscapes/caronly/caronly_filtered_gtFine_train.json',
+
+        # },
+
+
+        # 'cityscapes_car_val_cocostyle': {
+        #         "img_dir": 'cityscapes/images',
+        #         "ann_file": 'cityscapes/annotations/caronly_filtered_gtFine_val.json',
+        # },
+        # "voc_2007_train_watercolor_cocostyle": {
+        #     "img_dir": "voc/VOC2007/JPEGImages",
+        #     "ann_file": "voc/annotations/pascal_train2007.json"
+        # },
+        # "voc_2007_val_watercolor_cocostyle": {
+        #     "img_dir": "voc/VOC2007/JPEGImages",
+        #     "ann_file": "voc/annotations/pascal_val2007.json"
+        # },
+        # "voc_2012_train_watercolor_cocostyle": {
+        #     "img_dir": "voc/VOC2012/JPEGImages",
+        #     "ann_file": "voc/annotations/pascal_train2012.json"
+        # },
+        # "voc_2012_val_watercolor_cocostyle": {
+        #     "img_dir": "voc/VOC2012/JPEGImages",
+        #     "ann_file": "voc/annotations/Annotations/pascal_val2012.json"
+        # },
+        # 'clipart_cocostyle': {
+        #         "img_dir": 'clipart/JPEGImages',
+        #         "ann_file": 'clipart/instances.json',
+        # },
+        # 'watercolor_train_cocostyle': {
+        #         "img_dir": 'watercolor/JPEGImages',
+        #         "ann_file": 'watercolor/instances_train.json',
+        # },
+        # 'watercolor_val_cocostyle': {
+        #         "img_dir": 'watercolor/JPEGImages',
+        #         "ann_file": 'watercolor/instances_test.json',
+        # },
     }
 
     @staticmethod
@@ -173,12 +249,6 @@ class DatasetCatalog(object):
                 factory="PascalVOCDataset",
                 args=args,
             )
-        elif "cityscapes" in name:
-            data_dir = DatasetCatalog.DATA_DIR
-            attrs = deepcopy(DatasetCatalog.DATASETS[name])
-            attrs["img_dir"] = os.path.join(data_dir, attrs["img_dir"])
-            attrs["ann_dir"] = os.path.join(data_dir, attrs["ann_dir"])
-            return dict(factory="CityScapesDataset", args=attrs)
         raise RuntimeError("Dataset not available: {}".format(name))
 
 

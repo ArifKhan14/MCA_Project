@@ -1,3 +1,11 @@
+'''
+Descripttion: 
+version: 
+Author: Jinlong Li CSU PhD
+Date: 2022-01-04 23:51:49
+LastEditors: Jinlong Li CSU PhD
+LastEditTime: 2022-01-05 13:57:10
+'''
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 import torch
 
@@ -11,7 +19,7 @@ class BalancedPositiveNegativeSampler(object):
         """
         Arguments:
             batch_size_per_image (int): number of elements to be selected per image
-            positive_fraction (float): percentage of positive elements per batch
+            positive_fraction (float): percentace of positive elements per batch
         """
         self.batch_size_per_image = batch_size_per_image
         self.positive_fraction = positive_fraction

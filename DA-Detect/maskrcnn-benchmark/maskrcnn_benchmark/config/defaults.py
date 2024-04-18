@@ -10,9 +10,9 @@ from yacs.config import CfgNode as CN
 # Whenever an argument can be either used for training or for testing, the
 # corresponding name will be post-fixed by a _TRAIN for a training parameter,
 # or _TEST for a test-specific parameter.
-# For example, the maximum image side during training will be
-# INPUT.MAX_SIZE_TRAIN, while for testing it will be
-# INPUT.MAX_SIZE_TEST
+# For example, the number of images during training will be
+# IMAGES_PER_BATCH_TRAIN, while the number of images for testing will be
+# IMAGES_PER_BATCH_TEST
 
 # -----------------------------------------------------------------------------
 # Config definition
@@ -23,6 +23,7 @@ _C = CN()
 _C.MODEL = CN()
 _C.MODEL.RPN_ONLY = False
 _C.MODEL.MASK_ON = False
+_C.MODEL.DOMAIN_ADAPTATION_ON =False
 _C.MODEL.RETINANET_ON = False
 _C.MODEL.KEYPOINT_ON = False
 _C.MODEL.DEVICE = "cuda"
@@ -54,24 +55,21 @@ _C.INPUT.PIXEL_STD = [1., 1., 1.]
 # Convert image to BGR format (for Caffe2 models), in range 0-255
 _C.INPUT.TO_BGR255 = True
 
-# Image ColorJitter
-_C.INPUT.BRIGHTNESS = 0.0
-_C.INPUT.CONTRAST = 0.0
-_C.INPUT.SATURATION = 0.0
-_C.INPUT.HUE = 0.0
-
-# Flips
-_C.INPUT.HORIZONTAL_FLIP_PROB_TRAIN = 0.5
-_C.INPUT.VERTICAL_FLIP_PROB_TRAIN = 0.0
 
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------
 _C.DATASETS = CN()
-# List of the dataset names for training, as present in paths_catalog.py
+# List of the dataset names for training, as present in paths_catalog.py TODO:
 _C.DATASETS.TRAIN = ()
+_C.DATASETS.SOURCE_TRAIN = ()
+_C.DATASETS.TARGET_TRAIN = ()
+_C.DATASETS.TARGET_TRAIN_negative = ()
+
+
 # List of the dataset names for testing, as present in paths_catalog.py
 _C.DATASETS.TEST = ()
+_C.DATASETS.TEST_SOURCE =()
 
 # -----------------------------------------------------------------------------
 # DataLoader
@@ -101,6 +99,9 @@ _C.MODEL.BACKBONE.CONV_BODY = "R-50-C4"
 
 # Add StopGrad at a specified stage so the bottom layers are frozen
 _C.MODEL.BACKBONE.FREEZE_CONV_BODY_AT = 2
+_C.MODEL.BACKBONE.OUT_CHANNELS = 256 * 4
+# GN for backbone
+_C.MODEL.BACKBONE.USE_GN = False
 
 
 # ---------------------------------------------------------------------------- #
@@ -166,9 +167,6 @@ _C.MODEL.RPN.MIN_SIZE = 0
 # all FPN levels
 _C.MODEL.RPN.FPN_POST_NMS_TOP_N_TRAIN = 2000
 _C.MODEL.RPN.FPN_POST_NMS_TOP_N_TEST = 2000
-# Apply the post NMS per batch (default) or per image during training
-# (default is True to be consistent with Detectron, see Issue #672)
-_C.MODEL.RPN.FPN_POST_NMS_PER_BATCH = True
 # Custom rpn head, empty to use default conv or separable conv
 _C.MODEL.RPN.RPN_HEAD = "SingleConvRPNHead"
 
@@ -256,6 +254,36 @@ _C.MODEL.ROI_KEYPOINT_HEAD.NUM_CLASSES = 17
 _C.MODEL.ROI_KEYPOINT_HEAD.SHARE_BOX_FEATURE_EXTRACTOR = True
 
 # ---------------------------------------------------------------------------- #
+# Domain Adaptation HEADS options
+# ---------------------------------------------------------------------------- #
+_C.MODEL.DA_HEADS = CN()
+_C.MODEL.DA_HEADS.DA_IMG_GRL_WEIGHT = 0.1
+_C.MODEL.DA_HEADS.DA_INS_GRL_WEIGHT = 0.1
+_C.MODEL.DA_HEADS.DA_IMG_LOSS_WEIGHT = 1.0
+_C.MODEL.DA_HEADS.DA_INS_LOSS_WEIGHT = 1.0
+_C.MODEL.DA_HEADS.DA_CST_LOSS_WEIGHT = 0.1
+_C.MODEL.DA_HEADS.DA_TRIPLET_INS_WEIGHT = 1.0
+_C.MODEL.DA_HEADS.DA_TRIPLET_IMG_WEIGHT = 1.0
+_C.MODEL.DA_HEADS.DA_ADV_GRL = True
+_C.MODEL.DA_HEADS.DA_ADV_GRL_THRESHOLD = 30
+_C.MODEL.DA_HEADS.ALIGNMENT = True
+_C.MODEL.DA_HEADS.TRIPLET_USE = True
+_C.MODEL.EVAL_USE_IN_TRAINING = True
+_C.MODEL.DA_HEADS.TRIPLET_MARGIN = 1.0
+_C.MODEL.DA_HEADS.TRIPLET_MAX_MARGIN = 1.0
+_C.MODEL.DA_HEADS.TRIPLET_MARGIN_INS = 1.0
+_C.MODEL.DA_HEADS.TRIPLET_MARGIN_IMG = 1.0
+_C.MODEL.DA_HEADS.DA_IMG_advGRL_WEIGHT= 0.1
+_C.MODEL.DA_HEADS.DA_INS_advGRL_WEIGHT = 0.1
+# ---------------------------------------------------------------------------- #
+# Domain Adaptation options
+# ---------------------------------------------------------------------------- #
+_C.MODEL.OUTPUT_DIR = "./"
+_C.MODEL.SAVE_DIR = "./"
+_C.MODEL.OUTPUT_SAVE_NAME = "output"
+
+
+# ---------------------------------------------------------------------------- #
 # ResNe[X]t options (ResNets = {ResNet, ResNeXt}
 # Note that parts of a resnet may be used for both the backbone and the head
 # These options apply to both
@@ -280,13 +308,8 @@ _C.MODEL.RESNETS.STEM_FUNC = "StemWithFixedBatchNorm"
 # Apply dilation in stage "res5"
 _C.MODEL.RESNETS.RES5_DILATION = 1
 
-_C.MODEL.RESNETS.BACKBONE_OUT_CHANNELS = 256 * 4
 _C.MODEL.RESNETS.RES2_OUT_CHANNELS = 256
 _C.MODEL.RESNETS.STEM_OUT_CHANNELS = 64
-
-_C.MODEL.RESNETS.STAGE_WITH_DCN = (False, False, False, False)
-_C.MODEL.RESNETS.WITH_MODULATED_DCN = False
-_C.MODEL.RESNETS.DEFORMABLE_GROUPS = 1
 
 
 # ---------------------------------------------------------------------------- #
@@ -349,51 +372,13 @@ _C.MODEL.RETINANET.INFERENCE_TH = 0.05
 # NMS threshold used in RetinaNet
 _C.MODEL.RETINANET.NMS_TH = 0.4
 
-
-# ---------------------------------------------------------------------------- #
-# FBNet options
-# ---------------------------------------------------------------------------- #
-_C.MODEL.FBNET = CN()
-_C.MODEL.FBNET.ARCH = "default"
-# custom arch
-_C.MODEL.FBNET.ARCH_DEF = ""
-_C.MODEL.FBNET.BN_TYPE = "bn"
-_C.MODEL.FBNET.SCALE_FACTOR = 1.0
-# the output channels will be divisible by WIDTH_DIVISOR
-_C.MODEL.FBNET.WIDTH_DIVISOR = 1
-_C.MODEL.FBNET.DW_CONV_SKIP_BN = True
-_C.MODEL.FBNET.DW_CONV_SKIP_RELU = True
-
-# > 0 scale, == 0 skip, < 0 same dimension
-_C.MODEL.FBNET.DET_HEAD_LAST_SCALE = 1.0
-_C.MODEL.FBNET.DET_HEAD_BLOCKS = []
-# overwrite the stride for the head, 0 to use original value
-_C.MODEL.FBNET.DET_HEAD_STRIDE = 0
-
-# > 0 scale, == 0 skip, < 0 same dimension
-_C.MODEL.FBNET.KPTS_HEAD_LAST_SCALE = 0.0
-_C.MODEL.FBNET.KPTS_HEAD_BLOCKS = []
-# overwrite the stride for the head, 0 to use original value
-_C.MODEL.FBNET.KPTS_HEAD_STRIDE = 0
-
-# > 0 scale, == 0 skip, < 0 same dimension
-_C.MODEL.FBNET.MASK_HEAD_LAST_SCALE = 0.0
-_C.MODEL.FBNET.MASK_HEAD_BLOCKS = []
-# overwrite the stride for the head, 0 to use original value
-_C.MODEL.FBNET.MASK_HEAD_STRIDE = 0
-
-# 0 to use all blocks defined in arch_def
-_C.MODEL.FBNET.RPN_HEAD_BLOCKS = 0
-_C.MODEL.FBNET.RPN_BN_TYPE = ""
-
-
 # ---------------------------------------------------------------------------- #
 # Solver
 # ---------------------------------------------------------------------------- #
 _C.SOLVER = CN()
 _C.SOLVER.MAX_ITER = 40000
 
-_C.SOLVER.BASE_LR = 0.001
+_C.SOLVER.BASE_LR = 0.0001
 _C.SOLVER.BIAS_LR_FACTOR = 2
 
 _C.SOLVER.MOMENTUM = 0.9
@@ -408,8 +393,12 @@ _C.SOLVER.WARMUP_FACTOR = 1.0 / 3
 _C.SOLVER.WARMUP_ITERS = 500
 _C.SOLVER.WARMUP_METHOD = "linear"
 
-_C.SOLVER.CHECKPOINT_PERIOD = 2500
-_C.SOLVER.TEST_PERIOD = 0
+
+_C.SOLVER.WARMUP_ITERS = 500
+_C.SOLVER.WARMUP_LR = 0.0001
+_C.SOLVER.LR_MIN = 0.000001
+
+_C.SOLVER.CHECKPOINT_PERIOD = 2500 #2500
 
 # Number of images per batch
 # This is global, so if we have 8 GPUs and IMS_PER_BATCH = 16, each GPU will
@@ -429,41 +418,13 @@ _C.TEST.IMS_PER_BATCH = 8
 # Number of detections per image
 _C.TEST.DETECTIONS_PER_IMG = 100
 
-# ---------------------------------------------------------------------------- #
-# Test-time augmentations for bounding box detection
-# See configs/test_time_aug/e2e_mask_rcnn_R-50-FPN_1x.yaml for an example
-# ---------------------------------------------------------------------------- #
-_C.TEST.BBOX_AUG = CN()
-
-# Enable test-time augmentation for bounding box detection if True
-_C.TEST.BBOX_AUG.ENABLED = False
-
-# Horizontal flip at the original scale (id transform)
-_C.TEST.BBOX_AUG.H_FLIP = False
-
-# Each scale is the pixel size of an image's shortest side
-_C.TEST.BBOX_AUG.SCALES = ()
-
-# Max pixel size of the longer side
-_C.TEST.BBOX_AUG.MAX_SIZE = 4000
-
-# Horizontal flip at each scale
-_C.TEST.BBOX_AUG.SCALE_H_FLIP = False
-
 
 # ---------------------------------------------------------------------------- #
 # Misc options
 # ---------------------------------------------------------------------------- #
-_C.OUTPUT_DIR = "."
+
+_C.TENSORBOARD_EXPERIMENT = "logs/maskrcnn-benchmark"
+# _C.OUTPUT_DIR = "./"
+# _C.SAVE_DIR = "/home/jinlong/2.Special_issue_DA/trained_models/img+ins+triple"
 
 _C.PATHS_CATALOG = os.path.join(os.path.dirname(__file__), "paths_catalog.py")
-
-# ---------------------------------------------------------------------------- #
-# Precision options
-# ---------------------------------------------------------------------------- #
-
-# Precision of input, allowable: (float32, float16)
-_C.DTYPE = "float32"
-
-# Enable verbosity in apex.amp
-_C.AMP_VERBOSE = False
